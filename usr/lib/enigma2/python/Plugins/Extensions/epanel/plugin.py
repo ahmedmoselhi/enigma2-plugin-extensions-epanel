@@ -21,9 +21,9 @@ from Components.Harddisk import harddiskmanager
 from os import environ
 import os
 import gettext
-import emuman
-import minstall
-import tools
+from . import emuman
+from . import minstall
+from . import tools
 from enigma import eEPGCache
 from types import *
 from enigma import *
@@ -388,8 +388,8 @@ class epanelinfo(Screen):
 		try:
 			if os.path.isfile("/etc/issue"):
 				for line in open("/etc/issue"):
-					if not line.startswith('Welcom') and '\l' in line:
-						return line.capitalize().replace('\n', ' ').replace('\l', ' ').strip()
+					if not line.startswith('Welcom') and '\\l' in line:
+						return line.capitalize().replace('\n', ' ').replace('\\l', ' ').strip()
 		except:
 			pass
 		return _("undefined")
@@ -758,5 +758,3 @@ def Plugins(**kwargs):
 		list.append(PluginDescriptor(name= _("E-CCcam.Cfg switcher"), description= _("Switch cccam condig with remote control"), where = [PluginDescriptor.WHERE_EXTENSIONSMENU], fnc=cccam_sw))
 	list.append(PluginDescriptor(name=_("E-Panel"), description=_("E-Panel"), where = [PluginDescriptor.WHERE_AUTOSTART, PluginDescriptor.WHERE_SESSIONSTART], fnc = sessionstart))
 	return list
-
-

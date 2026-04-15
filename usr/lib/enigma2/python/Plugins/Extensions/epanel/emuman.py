@@ -19,7 +19,7 @@ from Tools.Directories import fileExists, resolveFilename, SCOPE_PLUGINS, SCOPE_
 from os import environ
 import os
 import gettext
-import tools
+from . import tools
 
 lang = language.getLanguage()
 environ["LANGUAGE"] = lang[:2]
