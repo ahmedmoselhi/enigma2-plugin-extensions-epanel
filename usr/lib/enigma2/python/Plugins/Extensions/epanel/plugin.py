@@ -30,7 +30,6 @@ from enigma import *
 import sys, traceback
 import re
 import time
-import new
 import _enigma
 import enigma
 
@@ -178,19 +177,19 @@ class easyPanel2(Screen):
 
 	def select_item(self, item):
 		if item:
-			if item is 1:
+			if item == 1:
 				self.session.open(emuman.SoftcamPanel2)
-			elif item is 2:
+			elif item == 2:
 				self.session.open(tools.ToolsScreen2)
-			elif item is 3:
+			elif item == 3:
 				self.session.open(tools.SystemScreen)
-			elif item is 4:
+			elif item == 4:
 				self.session.open(tools.System2Screen)
-			elif item is 5:
+			elif item == 5:
 				self.session.open(minstall.IPKToolsScreen2)
-			elif item is 6:
+			elif item == 6:
 				self.session.open(PluginBrowser)
-			elif item is 7:
+			elif item == 7:
 				self.session.open(ConfigExtentions2)
 			else:
 				self.close(None)
@@ -318,7 +317,7 @@ class epanelinfo(Screen):
 					cpu_family = line.split(':')[-1].strip().strip('\n')
 				elif "cpu variant" in line:
 					cpu_variant = line.split(':')[-1].strip().strip('\n')
-			if cpu_variant is '':
+			if cpu_variant == '':
 				self["CPU"].text = _("%s, %s Mhz (%d %s)") % (processor, cpu_speed, cpu_count, cpu_count > 1 and cores or core)
 			else:
 				self["CPU"].text = "%s(%s), %s" % (processor, cpu_family, cpu_variant)
@@ -470,7 +469,7 @@ class epanelinfo(Screen):
 		self.iConsole.ePopen("df | grep root", self.rootfs_info)
 	
 	def rootfs_info(self, result, retval, extra_args):
-		if retval is 0:
+		if retval == 0:
 			for line in result.splitlines():
 				if "root" in line:
 					self["flashTotal"].text = _("Total: %s Kb  Free: %s Kb") % (line.split()[1], line.split()[3])
@@ -482,7 +481,7 @@ class epanelinfo(Screen):
 		for line in open(self.status()):
 			if "epanel" in line:
 				package = 1
-			if "Version:" in line and package is 1:
+			if "Version:" in line and package == 1:
 				package = 0
 				self["panelver"].text = line.split()[1]
 				break
@@ -562,21 +561,19 @@ class loadEPG():
 		self.iConsole.ePopen("cp -f %sepgtmp/epg.dat.gz %s && gzip -df %sepg.dat.gz" % (config.plugins.epanel.direct.value, config.plugins.epanel.direct.value, config.plugins.epanel.direct.value), self.check_epgfile)
 		
 	def check_epgfile(self, result, retval, extra_args):
-		if retval is 0:
+		if retval == 0:
 			if fileExists("%sepg.dat" % config.plugins.epanel.direct.value):
-				os.chmod('%sepg.dat' % config.plugins.epanel.direct.value, 0644)
-			epgcache = new.instancemethod(_enigma.eEPGCache_load,None,eEPGCache)
-			epgcache = eEPGCache.getInstance().load()
+				os.chmod('%sepg.dat' % config.plugins.epanel.direct.value, 0o644)
+			eEPGCache.getInstance().load()
 
 	def update(self):
+		global first_start, min, min_ntp
 		self.timer.stop()
 		time_min = 0
 		now = time.localtime(time.time())
 		if config.plugins.epanel.coldstartepgrstore.value and first_start == 0:
 			if fileExists("%sepgtmp/epg.dat.gz" % config.plugins.epanel.direct.value):
-				epgcache = new.instancemethod(_enigma.eEPGCache_load,None,eEPGCache)
-				epgcache = eEPGCache.getInstance().load()
-				global first_start
+				eEPGCache.getInstance().load()
 				first_start = 1
 		if config.plugins.epanel.checkepgfile.value:
 			if not fileExists("%sepg.dat" % config.plugins.epanel.direct.value):
@@ -588,48 +585,43 @@ class loadEPG():
 			self.iConsole.ePopen("opkg update")
 		if config.plugins.epanel.autosave.value != '0':
 			if min > int(config.plugins.epanel.autosave.value) and config.plugins.epanel.timedwn.value[1] != now.tm_min:
-				global min
 				min = 0
 				self.save_load_epg()
 				if config.plugins.epanel.autobackup.value:
 					self.autobackup()
 			else:
-				global min
 				min += 1
-		if config.plugins.epanel.onoff.value is '1':
+		if config.plugins.epanel.onoff.value == '1':
 			time_min = int(config.plugins.epanel.time.value)
 			if time_min == 30:
 				time_min = 30
 			else:
 				time_min = time_min * 60
 			if min_ntp > time_min:
-				global min_ntp
 				min_ntp = 0
 				self.ntd_time_update()
 			else:
-				global min_ntp
 				min_ntp += 1
 		self.timer.start(60000, True)
 	
 	def ntd_time_update(self):
-		if config.plugins.epanel.onoff.value is '1':
+		if config.plugins.epanel.onoff.value == '1':
 			self.iConsole.ePopen("/usr/bin/ntpdate-sync")
 
 	def autobackup(self):
 		self.iConsole.ePopen("gzip -c %sepg.dat > %sepgtmp/epg.dat.gz" % (config.plugins.epanel.direct.value, config.plugins.epanel.direct.value))
 		
 	def save_load_epg(self):
-		epgcache = new.instancemethod(_enigma.eEPGCache_save,None,eEPGCache)
-		epgcache = eEPGCache.getInstance().save()
+		eEPGCache.getInstance().save()
 		
 	def dload(self):
-		if config.plugins.epanel.direct_source.value is '0':
+		if config.plugins.epanel.direct_source.value == '0':
 			self.iConsole.ePopen("wget -q http://linux-sat.tv/epg/epg_%s.dat.gz -O %sepg.dat.gz" % (config.plugins.epanel.lang.value, config.plugins.epanel.direct.value), self.remove_epgfile)
 		else:
 			self.iConsole.ePopen("wget -q http://piconload.ru/upload/epg/epg_new.dat.gz -O %sepg.dat.gz" % config.plugins.epanel.direct.value, self.remove_epgfile)
 		
 	def remove_epgfile(self, result, retval, extra_args):
-		if retval is 0:
+		if retval == 0:
 			if not pathExists('%sepgtmp' % config.plugins.epanel.direct.value):
 				self.iConsole.ePopen("mkdir -p %sepgtmp" % \
 					config.plugins.epanel.direct.value, self.copy_tmp)
@@ -638,23 +630,22 @@ class loadEPG():
 					config.plugins.epanel.direct.value, self.copy_tmp)
 		
 	def copy_tmp(self, result, retval, extra_args):
-		if retval is 0:
+		if retval == 0:
 			self.iConsole.ePopen("cp -f %sepg.dat.gz %sepgtmp" % (config.plugins.epanel.direct.value, config.plugins.epanel.direct.value), self.unpack_zip)
 		else:
 			pass
 			
 	def unpack_zip(self, result, retval, extra_args):
-		if retval is 0:
+		if retval == 0:
 			self.iConsole.ePopen("gzip -df %sepg.dat.gz " % config.plugins.epanel.direct.value, self.attr_epgfile)
 		else:
 			pass
 			
 	def attr_epgfile(self, result, retval, extra_args):
-		if retval is 0:
+		if retval == 0:
 			if fileExists("%sepg.dat" % config.plugins.epanel.direct.value):
-				os.chmod('%sepg.dat' % config.plugins.epanel.direct.value, 0644)
-			epgcache = new.instancemethod(_enigma.eEPGCache_load,None,eEPGCache)
-			epgcache = eEPGCache.getInstance().load()
+				os.chmod('%sepg.dat' % config.plugins.epanel.direct.value, 0o644)
+			eEPGCache.getInstance().load()
 			try:
 				self.mbox = self.session.open(MessageBox,(_("EPG downloaded")), MessageBox.TYPE_INFO, timeout = 4 )
 			except:

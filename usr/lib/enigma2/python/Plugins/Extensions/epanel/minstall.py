@@ -141,13 +141,13 @@ class IPKToolsScreen2(Screen):
 
 	def select_item(self, item):
 		if item:
-			if item is 1:
+			if item == 1:
 				self.session.open(InstallAll4)
-			elif item is 2:
+			elif item == 2:
 				self.session.open(downfeed)
-			elif item is 3:
+			elif item == 3:
 				self.session.open(DownloadFeed)
-			elif item is 4:
+			elif item == 4:
 				self.session.open(RemoveIPK)
 			else:
 				self.close(None)
@@ -204,7 +204,7 @@ class downfeed(Screen):
 			statuspath = self.path[:-6]
 		for file in list:
 			if os.path.isfile(statuspath + file):
-				if not file is 'status':
+				if file != 'status':
 					for line in open(statuspath + file):
 						if 'Package:' in line and '-dev' not in line:
 							pkg_name = line.split(':')[1]
@@ -285,7 +285,7 @@ class DownloadFeed(Screen):
 			statuspath = self.path[:-6]
 		for file in list:
 			if os.path.isfile(statuspath + file):
-				if not file is 'status':
+				if file != 'status':
 					for line in open(statuspath + file):
 						if 'Package:' in line and '-dev' not in line:
 							pkg_name = line.split(':')[1]
@@ -344,7 +344,7 @@ class InstallAll4(Screen):
 	  
 	def __init__(self, session, args=None):
 		Screen.__init__(self, session)
-		if config.plugins.epanel.multifilemode.value is 'Multi':
+		if config.plugins.epanel.multifilemode.value == 'Multi':
 			self.setTitle(_('MultiSelect Mode'))
 		else:
 			self.setTitle(_('SingleSelect Mode'))
@@ -384,7 +384,7 @@ class InstallAll4(Screen):
 		return searchPaths
 		
 	def press_ok(self):
-		if config.plugins.epanel.multifilemode.value is 'Multi':
+		if config.plugins.epanel.multifilemode.value == 'Multi':
 			self.mark_list()
 		else:
 			self.all_install()
@@ -422,7 +422,7 @@ class InstallAll4(Screen):
 	def all_install(self):
 		line_old = self["menu"].getCurrent()
 		if line_old is not None:
-			if config.plugins.epanel.multifilemode.value is not 'Multi':
+			if config.plugins.epanel.multifilemode.value != 'Multi':
 				self.commamd_line_tar = []
 				self.commamd_line_ipk = []
 				if '.ipk' in self["menu"].getCurrent()[-1]:
